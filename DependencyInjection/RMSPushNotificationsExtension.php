@@ -178,6 +178,7 @@ class RMSPushNotificationsExtension extends Extension
         $this->container->setParameter(sprintf('rms_push_notifications.%s.sandbox', $os), $config[$os]["sandbox"]);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.pem', $os), $config[$os]["pem"]);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.passphrase', $os), $config[$os]["passphrase"]);
+        $this->container->setParameter(sprintf('rms_push_notifications.%s.entrust_cert', $os), $config[$os]["entrust_cert"]);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.json_unescaped_unicode', $os), (bool) $config[$os]['json_unescaped_unicode']);
     }
 

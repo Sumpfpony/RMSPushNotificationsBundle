@@ -119,6 +119,16 @@ Apple recommend you poll this service daily.
 
 The bundle has beta support for Windows Phone, and supports the Toast notification. Use the `WindowsphoneMessage` message class to send accordingly.
 
+## FIX: SSL routines:SSL3_READ_BYTES:sslv3 alert handshake failure  
+
+This error means that the certificate from the server could not be verified. 
+To fix this you need to download the Entrust CA root certificate. 
+This can be done from the Terminal using the command: 
+```
+curl -O https://www.entrust.net/downloads/binary/entrust_2048_ca.cer
+```
+You then also need to add stream_context_set_option($ctx, 'ssl', 'cafile', 'entrust_2048_ca.cer');
+
 # Thanks
 
 Firstly, thanks to all contributors to this bundle!

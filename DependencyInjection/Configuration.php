@@ -110,6 +110,7 @@ class Configuration implements ConfigurationInterface
                         booleanNode("sandbox")->defaultFalse()->end()->
                         scalarNode("pem")->cannotBeEmpty()->end()->
                         scalarNode("passphrase")->defaultValue("")->end()->
+                        scalarNode("entrust_cert")->defaultValue(null)->end()->
                         scalarNode('json_unescaped_unicode')->defaultFalse();
                         if (method_exists($config,'info')) {
                             $config = $config->info('PHP >= 5.4.0 and each messaged must be UTF-8 encoding');

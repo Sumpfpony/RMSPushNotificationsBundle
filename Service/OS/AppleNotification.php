@@ -105,6 +105,11 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
     protected $logger;
 
     /**
+     * @var null|string
+     */
+    protected $entrustPath;
+
+    /**
      * Cache pem filename
      */
     const APNS_CERTIFICATE_FILE = '/rms_push_notifications/apns.pem';
@@ -125,8 +130,9 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
      * @param string        $cachedir
      * @param EventListener $eventListener
      * @param LoggerInterface $logger
+     * @param string $entrustPath
      */
-    public function __construct($sandbox, $pem, $passphrase = "", $jsonUnescapedUnicode = FALSE, $timeout = 60, $cachedir = "", EventListener $eventListener = null, $logger = null)
+    public function __construct($sandbox, $pem, $passphrase = "", $jsonUnescapedUnicode = FALSE, $timeout = 60, $cachedir = "", EventListener $eventListener = null, $logger = null, $entrustPath = null)
     {
         $this->useSandbox = $sandbox;
         $this->pemPath = $pem;
@@ -138,6 +144,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         $this->timeout = $timeout;
         $this->cachedir = $cachedir;
         $this->logger = $logger;
+        $this->entrustPath = $entrustPath;
 
         if ($eventListener != null) {
             $eventListener->addListener($this);
@@ -170,9 +177,9 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
             throw new InvalidMessageTypeException(sprintf("Message type '%s' not supported by APN", get_class($message)));
         }
 
-        $apnURL = "ssl://gateway.push.apple.com:2195";
+        $apnURL = "tls://gateway.push.apple.com:2195";
         if ($this->useSandbox) {
-            $apnURL = "ssl://gateway.sandbox.push.apple.com:2195";
+            $apnURL = "tls://gateway.sandbox.push.apple.com:2195";
         }
 
         $messageId = ++$this->lastMessageId;
@@ -277,7 +284,7 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         if (!isset($this->apnStreams[$apnURL])) {
             // No stream found, setup a new stream
             $ctx = $this->getStreamContext();
-            $this->apnStreams[$apnURL] = stream_socket_client($apnURL, $err, $errstr, $this->timeout, STREAM_CLIENT_CONNECT, $ctx);
+            $this->apnStreams[$apnURL] = stream_socket_client($apnURL, $err, $errstr, $this->timeout, STREAM_CLIENT_CONNECT|STREAM_CLIENT_PERSISTENT, $ctx);
             if (!$this->apnStreams[$apnURL]) {
                 throw new \RuntimeException("Couldn't connect to APN server. Error no $err: $errstr");
             }
@@ -332,9 +339,14 @@ class AppleNotification implements OSNotificationServiceInterface, EventListener
         }
 
         $ctx = stream_context_create();
+
         stream_context_set_option($ctx, "ssl", "local_cert", $pem);
         if (strlen($passphrase)) {
             stream_context_set_option($ctx, "ssl", "passphrase", $passphrase);
+        }
+
+        if(!is_null($this->entrustPath)) {
+            stream_context_set_option($ctx, 'ssl', 'cafile', $this->entrustPath);
         }
 
         return $ctx;
