@@ -95,20 +95,29 @@ class RMSPushNotificationsExtension extends Extension
         $this->container->setParameter("rms_push_notifications.android.c2dm.password", $password);
         $this->container->setParameter("rms_push_notifications.android.c2dm.source", $source);
 
+
+        // DEFINE PARAMETERS
+        $this->container->setParameter("rms_push_notifications.android.gcm.api_key", null);
+        $this->container->setParameter("rms_push_notifications.android.gcm.use_multi_curl", null);
+        $this->container->setParameter("rms_push_notifications.android.gcm.dry_run", null);
+        $this->container->setParameter("rms_push_notifications.android.fcm.api_key", null);
+        $this->container->setParameter("rms_push_notifications.android.fcm.use_multi_curl", null);
+
         // GCM
         $this->container->setParameter("rms_push_notifications.android.gcm.enabled", isset($config["android"]["gcm"]));
-//        if (isset($config["android"]["gcm"])) {
-            $this->container->setParameter("rms_push_notifications.android.gcm.api_key", isset($config["android"]["gcm"]["api_key"]) ? $config["android"]["gcm"]["api_key"] : null);
-            $this->container->setParameter("rms_push_notifications.android.gcm.use_multi_curl", isset($config["android"]["gcm"]["use_multi_curl"]) ? $config["android"]["gcm"]["use_multi_curl"] : null);
-            $this->container->setParameter('rms_push_notifications.android.gcm.dry_run', isset($config["android"]["gcm"]["dry_run"]) ? $config["android"]["gcm"]["dry_run"] : null);
-//        }
+        if (isset($config["android"]["gcm"])) {
+            $this->container->setParameter("rms_push_notifications.android.gcm.api_key", $config["android"]["gcm"]["api_key"]);
+            $this->container->setParameter("rms_push_notifications.android.gcm.use_multi_curl", $config["android"]["gcm"]["use_multi_curl"]);
+            $this->container->setParameter('rms_push_notifications.android.gcm.dry_run', $config["android"]["gcm"]["dry_run"]);
+        }
+
 
         // FCM
         $this->container->setParameter("rms_push_notifications.android.fcm.enabled", isset($config["android"]["fcm"]));
-//        if (isset($config["android"]["fcm"])) {
-            $this->container->setParameter("rms_push_notifications.android.fcm.api_key", isset($config["android"]["fcm"]["api_key"]) ? $config["android"]["fcm"]["api_key"] : null);
-            $this->container->setParameter("rms_push_notifications.android.fcm.use_multi_curl", isset($config["android"]["fcm"]["use_multi_curl"]) ? $config["android"]["fcm"]["use_multi_curl"] : null);
-//        }
+        if (isset($config["android"]["fcm"])) {
+            $this->container->setParameter("rms_push_notifications.android.fcm.api_key", $config["android"]["fcm"]["api_key"]);
+            $this->container->setParameter("rms_push_notifications.android.fcm.use_multi_curl", $config["android"]["fcm"]["use_multi_curl"]);
+        }
     }
 
     /**
@@ -147,21 +156,20 @@ class RMSPushNotificationsExtension extends Extension
             throw new \RuntimeException(sprintf('This Apple OS "%s" is not supported', $os));
         }
 
-        /* cannot resolve path at compile time, need to check at runtime */
-        // $pemFile = null;
-        // if (isset($config[$os]["pem"])) {
-        //     // If PEM is set, it must be a real file
-        //     if (realpath($config[$os]["pem"])) {
-        //         // Absolute path
-        //         $pemFile = $config[$os]["pem"];
-        //     } elseif (realpath($this->kernelRootDir.DIRECTORY_SEPARATOR.$config[$os]["pem"]) ) {
-        //         // Relative path
-        //         $pemFile = $this->kernelRootDir.DIRECTORY_SEPARATOR.$config[$os]["pem"];
-        //     } else {
-        //         // path isn't valid
-        //         throw new \RuntimeException(sprintf('Pem file "%s" not found.', $config[$os]["pem"]));
-        //     }
-        // }
+        $pemFile = null;
+        if (isset($config[$os]["pem"])) {
+            // If PEM is set, it must be a real file
+            if (realpath($config[$os]["pem"])) {
+                // Absolute path
+                $pemFile = $config[$os]["pem"];
+            } elseif (realpath($this->kernelRootDir.DIRECTORY_SEPARATOR.$config[$os]["pem"]) ) {
+                // Relative path
+                $pemFile = $this->kernelRootDir.DIRECTORY_SEPARATOR.$config[$os]["pem"];
+            } else {
+                // path isn't valid
+                throw new \RuntimeException(sprintf('Pem file "%s" not found.', $config[$os]["pem"]));
+            }
+        }
 
         if ($config[$os]['json_unescaped_unicode']) {
             // Not support JSON_UNESCAPED_UNICODE option
@@ -176,9 +184,8 @@ class RMSPushNotificationsExtension extends Extension
         $this->container->setParameter(sprintf('rms_push_notifications.%s.enabled', $os), true);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.timeout', $os), $config[$os]["timeout"]);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.sandbox', $os), $config[$os]["sandbox"]);
-        $this->container->setParameter(sprintf('rms_push_notifications.%s.pem', $os), $config[$os]["pem"]);
+        $this->container->setParameter(sprintf('rms_push_notifications.%s.pem', $os), $pemFile);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.passphrase', $os), $config[$os]["passphrase"]);
-        $this->container->setParameter(sprintf('rms_push_notifications.%s.entrust_cert', $os), $config[$os]["entrust_cert"]);
         $this->container->setParameter(sprintf('rms_push_notifications.%s.json_unescaped_unicode', $os), (bool) $config[$os]['json_unescaped_unicode']);
     }
 

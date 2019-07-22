@@ -10,6 +10,7 @@ use Buzz\Browser,
     Buzz\Client\AbstractCurl,
     Buzz\Client\Curl,
     Buzz\Client\MultiCurl;
+use Nyholm\Psr7\Response;
 
 class AndroidFCMNotification implements OSNotificationServiceInterface
 {
@@ -75,8 +76,10 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             ];
             $client = ($useMultiCurl ? new MultiCurl($options) : new Curl($options));
         }
+        //$client->setTimeout($timeout);
 
         $this->browser = new Browser($client);
+        //$this->browser->getClient()->setVerifyPeer(false);
         $this->logger = $logger;
     }
 
@@ -96,10 +99,10 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             throw new InvalidMessageTypeException("Non-FCM messages not supported by the Android FCM sender");
         }
 
-        $headers = array(
-            "Authorization: key=" . $this->apiKey,
-            "Content-Type: application/json",
-        );
+        $headers = [
+            "Authorization" => "key=" . $this->apiKey,
+            "Content-Type" => "application/json",
+        ];
         $data = array_merge(
             $message->getFCMOptions(),
             array("data" => $message->getData())
@@ -130,7 +133,14 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
 
         // Determine success
         foreach ($this->responses as $response) {
-            $message = json_decode($response->getContent());
+            if ($response instanceof Response) {
+                if ($response->getStatusCode() === 200) {
+                    return true;
+                }
+            }
+            $message = json_decode($response->getBody());
+
+            //$message = json_decode($response->getContent());
             if ($message === null || $message->success == 0 || $message->failure > 0) {
                 if ($message == null) {
                     $this->logger->error($response->getContent());

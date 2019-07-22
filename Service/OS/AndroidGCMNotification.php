@@ -2,14 +2,16 @@
 
 namespace RMS\PushNotificationsBundle\Service\OS;
 
-use Psr\Log\LoggerInterface;
-use RMS\PushNotificationsBundle\Exception\InvalidMessageTypeException,
-    RMS\PushNotificationsBundle\Message\AndroidMessage,
-    RMS\PushNotificationsBundle\Message\MessageInterface;
 use Buzz\Browser,
     Buzz\Client\AbstractCurl,
     Buzz\Client\Curl,
     Buzz\Client\MultiCurl;
+use Nyholm\Psr7\Request;
+use Psr\Log\LoggerInterface;
+use RMS\PushNotificationsBundle\Exception\InvalidMessageTypeException,
+    RMS\PushNotificationsBundle\Message\AndroidMessage,
+    RMS\PushNotificationsBundle\Message\MessageInterface;
+use Nyholm\Psr7\Response;
 
 class AndroidGCMNotification implements OSNotificationServiceInterface
 {
@@ -64,6 +66,13 @@ class AndroidGCMNotification implements OSNotificationServiceInterface
     protected $logger;
 
     /**
+     * Buzz request client options as associative array.
+     *
+     * @var array
+     */
+    protected $clientOptions;
+
+    /**
      * Constructor
      *
      * @param string       $apiKey
@@ -77,14 +86,14 @@ class AndroidGCMNotification implements OSNotificationServiceInterface
     {
         $this->useDryRun = $dryRun;
         $this->apiKey = $apiKey;
+        // We'll need to set this per-request if `$client` was provided in constructor.
+        $this->clientOptions = array(
+            'timeout' => $timeout,
+            'verify' => false,
+        );
         if (!$client) {
-            $options = [
-                'timeout' => $timeout,
-                'verify' => false,
-            ];
-            $client = ($useMultiCurl ? new MultiCurl($options) : new Curl($options));
+            $client = ($useMultiCurl ? new MultiCurl($this->clientOptions) : new Curl($this->clientOptions));
         }
-
         $this->browser = new Browser($client);
         $this->logger = $logger;
     }
@@ -105,10 +114,10 @@ class AndroidGCMNotification implements OSNotificationServiceInterface
             throw new InvalidMessageTypeException("Non-GCM messages not supported by the Android GCM sender");
         }
 
-        $headers = array(
-            "Authorization: key=" . $this->apiKey,
-            "Content-Type: application/json",
-        );
+        $headers = [
+            "Authorization" => "key=" . $this->apiKey,
+            "Content-Type" => "application/json",
+        ];
         $data = array_merge(
             $message->getGCMOptions(),
             array("data" => $message->getData())
@@ -124,14 +133,16 @@ class AndroidGCMNotification implements OSNotificationServiceInterface
 
         if (count($message->getGCMIdentifiers()) == 1) {
             $data['to'] = $gcmIdentifiers[0];
-            $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
+            $request = new Request('POST', $this->apiURL, $headers, json_encode($data));
+            $this->responses[] = $this->browser->getClient()->sendRequest($request, $this->clientOptions);
         } else {
             // Chunk number of registration IDs according to the maximum allowed by GCM
             $chunks = array_chunk($message->getGCMIdentifiers(), $this->registrationIdMaxCount);
 
             foreach ($chunks as $registrationIDs) {
                 $data['registration_ids'] = $registrationIDs;
-                $this->responses[] = $this->browser->post($this->apiURL, $headers, json_encode($data));
+                $request = new Request('POST', $this->apiURL, $headers, json_encode($data));
+                $this->responses[] = $this->browser->getClient()->sendRequest($request, $this->clientOptions);
             }
         }
 
@@ -143,10 +154,15 @@ class AndroidGCMNotification implements OSNotificationServiceInterface
 
         // Determine success
         foreach ($this->responses as $response) {
-            $message = json_decode($response->getContent());
+            if ($response instanceof Response) {
+                if ($response->getStatusCode() === 200) {
+                    return true;
+                }
+            }
+            $message = json_decode($response->getBody());
             if ($message === null || $message->success == 0 || $message->failure > 0) {
                 if ($message == null) {
-                    $this->logger->error($response->getContent());
+                    $this->logger->error($response->getBody());
                 } else {
                     foreach ($message->results as $result) {
                         if (isset($result->error)) {

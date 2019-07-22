@@ -109,7 +109,7 @@ class AndroidMessage implements MessageInterface
      */
     public function getData()
     {
-        return array_merge(array('message' => $this->getMessage()), $this->data);
+        return array_merge(array('message' => $this->getMessage()), ['data'=>$this->data]);
     }
 
     /**
@@ -150,11 +150,11 @@ class AndroidMessage implements MessageInterface
      */
     public function getTargetOS()
     {
-        if($this->isGCM) {
+        if($this->isGCM()) {
             return Types::OS_ANDROID_GCM;
         }
 
-        if($this->isFCM) {
+        if($this->isFCM()) {
             return Types::OS_ANDROID_FCM;
         }
 

@@ -1,6 +1,6 @@
 # RMSPushNotificationsBundle ![](https://secure.travis-ci.org/richsage/RMSPushNotificationsBundle.png)
 
-A bundle to allow sending of push notifications to mobile devices.  Currently supports Android (C2DM, GCM, FCM), Blackberry and iOS devices.
+A bundle to allow sending of push notifications to mobile devices.  Currently supports Android (C2DM, GCM), Blackberry and iOS devices.
 
 ## Installation
 
@@ -44,9 +44,6 @@ only be available if you provide configuration respectively for them.
               api_key: <string_android_gcm_api_key> # This is titled "Server Key" when creating it
               use_multi_curl: <boolean_android_gcm_use_multi_curl> # default is true
               dry_run: <bool_use_gcm_dry_run>
-          fcm:
-              api_key: <string_android_fcm_api_key> # This is titled "Server Key" when creating it
-              use_multi_curl: <boolean_android_fcm_use_multi_curl> # default is true
       ios:
           timeout: 60 # Seconds to wait for connection timeout, default is 60
           sandbox: <bool_use_apns_sandbox>
@@ -65,7 +62,7 @@ only be available if you provide configuration respectively for them.
       windowsphone:
           timeout: 5 # Seconds to wait for connection timeout, default is 5
 
-NOTE: If you are using Windows, you may need to set the Android GCM/FCM `use_multi_curl` flag to false for GCM/FCM messages to be sent correctly.
+NOTE: If you are using Windows, you may need to set the Android GCM `use_multi_curl` flag to false for GCM messages to be sent correctly.
 
 Timeout defaults are the defaults from prior to the introduction of this configuration value.
 
@@ -92,15 +89,15 @@ A little example of how to push your first message to an iOS device, we'll assum
 The send method will detect the type of message so if you'll pass it an `AndroidMessage` it will automatically send it through the C2DM/GCM servers, and likewise for Mac and Blackberry.
 
 ## Android messages
-You have a choice of three services, C2DM, GCM and FCM. C2DM is defined as main option, but the `AndroidMessage` class has flags to toggle which service to send it to.
+
+Since both C2DM and GCM are still available, the `AndroidMessage` class has a small flag on it to toggle which service to send it to.  Use as follows:
 
     use RMS\PushNotificationsBundle\Message\AndroidMessage;
 
     $message = new AndroidMessage();
+    $message->setGCM(true);
 
-You may choose `setGCM` or `setFCM` - this is optional.
-
-    $message->setFCM(true);
+to send as a GCM message rather than C2DM.
 
 ## iOS Feedback service
 
@@ -118,16 +115,6 @@ Apple recommend you poll this service daily.
 ## Windows Phone - Toast support
 
 The bundle has beta support for Windows Phone, and supports the Toast notification. Use the `WindowsphoneMessage` message class to send accordingly.
-
-## FIX: SSL routines:SSL3_READ_BYTES:sslv3 alert handshake failure  
-
-This error means that the certificate from the server could not be verified. 
-To fix this you need to download the Entrust CA root certificate. 
-This can be done from the Terminal using the command: 
-```
-curl -O https://www.entrust.net/downloads/binary/entrust_2048_ca.cer
-```
-You then also need to add stream_context_set_option($ctx, 'ssl', 'cafile', 'entrust_2048_ca.cer');
 
 # Thanks
 

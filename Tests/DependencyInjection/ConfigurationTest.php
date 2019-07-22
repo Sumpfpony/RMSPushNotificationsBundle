@@ -9,7 +9,8 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
 {
     public function testDefaults()
     {
-        $config = $this->process(array());
+        $this->process(array());
+        $this->addToAssertionCount(1); // Implicitly 'asserting' no exceptions at this point
     }
 
     /**
@@ -20,7 +21,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $arr = array(
             array("android" => "~"),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     /**
@@ -33,7 +34,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "android" => array("c2dm" => array("password" => "foo"))
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     /**
@@ -46,7 +47,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "android" => array("c2dm" => array("username" => "foo"))
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testOldFullAndroid()
@@ -100,7 +101,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 )
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testGCMIsOK()
@@ -125,22 +126,6 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($config["android"]["gcm"]["dry_run"]);
     }
 
-    public function testFCMIsOK()
-    {
-        $arr = array(
-            array(
-                "android" => array(
-                    "fcm" => array(
-                        "api_key" => "foo",
-                        "use_multi_curl" => true,
-                    )
-                )
-            ),
-        );
-        $config = $this->process($arr);
-        $this->assertEquals("foo", $config["android"]["fcm"]["api_key"]);
-    }
-
     /**
      * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidConfigurationException
      */
@@ -149,7 +134,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $arr = array(
             array("ios" => "~"),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     /**
@@ -162,7 +147,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "ios" => array("pem" => "")
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testFulliOS()
@@ -188,7 +173,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
         $arr = array(
             array("mac" => "~"),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     /**
@@ -201,7 +186,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "mac" => array("pem" => "")
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testFullMac()
@@ -229,7 +214,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "blackberry" => array("password" => "foo")
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     /**
@@ -242,7 +227,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "blackberry" => array("app_id" => "foo")
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testFullBlackberry()
@@ -270,7 +255,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
                 "windowsphone" => "~"
             ),
         );
-        $config = $this->process($arr);
+        $this->process($arr);
     }
 
     public function testFullWindows()
