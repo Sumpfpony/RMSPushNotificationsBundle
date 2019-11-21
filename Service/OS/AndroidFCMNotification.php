@@ -131,13 +131,15 @@ class AndroidFCMNotification implements OSNotificationServiceInterface
             $this->browser->getClient()->flush();
         }
 
+        #dump($this->responses[0]->getStatusCode(),json_decode($this->responses[0]->getBody()));
+
         // Determine success
         foreach ($this->responses as $response) {
-            if ($response instanceof Response) {
-                if ($response->getStatusCode() === 200) {
-                    return true;
-                }
-            }
+//            if ($response instanceof Response) {
+//                if ($response->getStatusCode() === 200) {
+//                    return true;
+//                }
+//            }
             $message = json_decode($response->getBody());
 
             //$message = json_decode($response->getContent());
