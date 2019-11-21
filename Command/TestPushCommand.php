@@ -30,7 +30,7 @@ class TestPushCommand extends ContainerAwareCommand
             ->setDescription("Sends a push command to a supplied push token'd device")
             ->addOption("badge", "b", InputOption::VALUE_OPTIONAL, "Badge number (for iOS devices)", 0)
             ->addOption("text", "t", InputOption::VALUE_OPTIONAL, "Text message")
-            ->addArgument("service", InputArgument::REQUIRED, "One of 'ios', 'c2dm', 'gcm', 'mac', 'blackberry' or 'windowsphone'")
+            ->addArgument("service", InputArgument::REQUIRED, "One of 'ios', 'c2dm','fcm', 'gcm', 'mac', 'blackberry' or 'windowsphone'")
             ->addArgument("token", InputArgument::REQUIRED, "Authentication token for the service")
             ->addArgument("payload", InputArgument::OPTIONAL, "The payload data to send (JSON)", '{"data": "test"}')
         ;
@@ -110,6 +110,14 @@ class TestPushCommand extends ContainerAwareCommand
             case "gcm":
                 $message = new PushMessage\AndroidMessage();
                 $message->setGCM(true);
+                $message->setFCMOptions([
+                    'restricted_package_name'=>'com.snazz.debug'
+                ]);
+
+                return $message;
+            case "fcm":
+                $message = new PushMessage\AndroidMessage();
+                $message->setFCM(true);
 
                 return $message;
             case "blackberry":
