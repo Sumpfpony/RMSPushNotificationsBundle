@@ -63,8 +63,7 @@ class AppleMessage implements MessageInterface
     public function __construct($identifier = NULL)
     {
         $this->apsBody = array(
-            "aps" => array(
-            ),
+            "aps" => array(),
         );
 
         if ($identifier !== NULL) {
@@ -75,11 +74,11 @@ class AppleMessage implements MessageInterface
     /**
      * Sets the message. For iOS, this is the APS alert message
      *
-     * @param $message
+     * @param string $message
      */
     public function setMessage($message)
     {
-        $this->apsBody["aps"]["alert"] = $message;
+        $this->apsBody["aps"]['alert']['body'] = $message;
     }
 
     /**
@@ -108,7 +107,7 @@ class AppleMessage implements MessageInterface
      * Add custom data
      *
      * @param string $key
-     * @param mixed  $value
+     * @param mixed $value
      */
     public function addCustomData($key, $value)
     {
@@ -195,7 +194,7 @@ class AppleMessage implements MessageInterface
      */
     public function setAPSBadge($badge)
     {
-        $this->apsBody["aps"]["badge"] = (int) $badge;
+        $this->apsBody["aps"]["badge"] = (int)$badge;
     }
 
     /**
@@ -208,6 +207,17 @@ class AppleMessage implements MessageInterface
     public function setAPSContentAvailable($contentAvailable)
     {
         $this->apsBody["aps"]["content-available"] = $contentAvailable;
+    }
+
+    /**
+     * iOS-specific
+     * Sets the APS title
+     *
+     * @param string $title The notification title
+     */
+    public function setTitle($title)
+    {
+        $this->apsBody["aps"]['alert']["title"] = $title;
     }
 
     /**
@@ -225,7 +235,7 @@ class AppleMessage implements MessageInterface
      * iOS-specific
      * Sets the APS mutable-content attribute
      *
-     * @param bool $mutableContent 
+     * @param bool $mutableContent
      */
     public function setMutableContent($mutableContent)
     {
@@ -295,6 +305,6 @@ class AppleMessage implements MessageInterface
             return $this->isMdmMessage;
         }
 
-        $this->isMdmMessage = (bool) $isMdmMessage;
+        $this->isMdmMessage = (bool)$isMdmMessage;
     }
 }
